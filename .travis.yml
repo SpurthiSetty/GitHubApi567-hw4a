@@ -1,9 +1,10 @@
 language: python
 python:
-  - "3.8" # Use the Python version you are working with
+  - "3.8"
 
 install:
-  - pip install pytest python-dotenv # Install pytest and dotenv for testing
+  - pip install -r requirements.txt
+  - pip install pytest python-dotenv # Ensure dependencies are installed
 
 script:
   - pytest # Run the test suite
