@@ -1,0 +1,9 @@
+language: python
+python:
+  - "3.8" # Use the Python version you are working with
+
+install:
+  - pip install pytest python-dotenv # Install pytest and dotenv for testing
+
+script:
+  - pytest # Run the test suite
