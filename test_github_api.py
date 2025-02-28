@@ -1,50 +1,88 @@
-import pytest
-from unittest.mock import patch
-import github_api  # Import the function to be tested
+import unittest
+from unittest.mock import patch, MagicMock
+import github_api  # Replace with your actual module name
+import requests
 
-class MockResponse:
-    """Mock class for simulating API responses"""
-    def __init__(self, json_data, status_code, reason=""):
-        self.json_data = json_data
-        self.status_code = status_code
-        self.reason = reason  # Add the reason attribute
+class TestGitHubAPI(unittest.TestCase):
+    
+    @patch('github_api.requests.get')  # Mock requests.get globally for this test class
+    def test_get_github_repos_and_commits_success(self, mock_get):
+        """Test fetching repositories and commit counts successfully"""
 
-    def json(self):
-        return self.json_data
+        # Mock responses for repository list
+        mock_repos_response = MagicMock()
+        mock_repos_response.status_code = 200
+        mock_repos_response.json.return_value = [
+            {"name": "repo1"},
+            {"name": "repo2"}
+        ]
 
-    def raise_for_status(self):
-        if self.status_code != 200:
-            raise Exception(f"Error: {self.status_code} - {self.reason}")
+        # Mock responses for commit list
+        mock_commits_response = MagicMock()
+        mock_commits_response.status_code = 200
+        mock_commits_response.json.side_effect = [
+            [{"sha": "123"}, {"sha": "456"}],  # Two commits for repo1
+            [{"sha": "789"}]  # One commit for repo2
+        ]
+
+        # Arrange the mock calls
+        mock_get.side_effect = [mock_repos_response, mock_commits_response, mock_commits_response]
+
+        # Act
+        result = github_api.get_github_repos_and_commits("test-user")
+
+        # Assert
+        expected_output = "Repo: repo1 Number of commits: 2\nRepo: repo2 Number of commits: 1"
+        self.assertEqual(result, expected_output)
+
+    @patch('github_api.requests.get')
+    def test_get_github_repos_and_commits_api_error(self, mock_get):
+        """Test handling of GitHub API errors"""
+
+        # Mock repository list response with an error
+        mock_repos_response = MagicMock()
+        mock_repos_response.status_code = 403
+        mock_repos_response.reason = "Forbidden"
+        mock_get.return_value = mock_repos_response
+
+        # Act
+        result = github_api.get_github_repos_and_commits("test-user")
+
+        # Assert
+        self.assertEqual(result, "Error: 403 - Forbidden")
+
+    @patch('github_api.requests.get')
+    def test_get_github_repos_and_commits_commits_api_error(self, mock_get):
+        """Test handling of commit API errors when fetching commits for a repo"""
+
+        # Mock repository list response
+        mock_repos_response = MagicMock()
+        mock_repos_response.status_code = 200
+        mock_repos_response.json.return_value = [{"name": "repo1"}]
+
+        # Mock commit list response with an error
+        mock_commits_response = MagicMock()
+        mock_commits_response.status_code = 404
+        mock_commits_response.reason = "Not Found"
+
+        # Arrange the mock calls
+        mock_get.side_effect = [mock_repos_response, mock_commits_response]
+
+        # Act
+        result = github_api.get_github_repos_and_commits("test-user")
+
+        # Assert
+        self.assertEqual(result, "Error: 404 - Not Found")
+
+    @patch('github_api.requests.get')
+    def test_get_github_repos_and_commits_request_exception(self, mock_get):
+        """Test handling of a network error"""
+        mock_get.side_effect = requests.exceptions.RequestException("Network Error")
+
+        result = github_api.get_github_repos_and_commits("test-user")
+
+        self.assertEqual(result, "Error: Network Error")
 
 
-@patch('github_api.requests.get')
-def test_get_github_repos_and_commits(mock_get):
-    """Test if function correctly retrieves repositories and commit counts"""
-    mock_get.side_effect = [
-        MockResponse([{"name": "Repo1"}, {"name": "Repo2"}], 200),  # Repo list response
-        MockResponse([{"sha": "commit1"}, {"sha": "commit2"}], 200),  # Repo1 commits response
-        MockResponse([{"sha": "commit1"}, {"sha": "commit2"}], 200),  # Repo2 commits response
-    ]
-
-    expected_output = (
-        "Repo: Repo1 Number of commits: 2\n"
-        "Repo: Repo2 Number of commits: 2"
-    )
-
-    result = github_api.get_github_repos_and_commits("testuser")
-    assert result == expected_output
-
-# @patch('github_api.requests.get')
-# def test_invalid_user(mock_get):
-#     """Test function handling of an invalid user (expecting an error message)"""
-#     mock_get.return_value = MockResponse(None, 404)  # Simulate 404 error response
-
-#     result = github_api.get_github_repos_and_commits("invalid_user")
-#     assert "Error" in result
-@patch('github_api.requests.get')
-def test_invalid_user(mock_get):
-    """Test function handling of an invalid user (expecting an error message)"""
-    mock_get.return_value = MockResponse(None, 404, "Not Found")  # Provide a reason for the 404 error
-
-    result = github_api.get_github_repos_and_commits("invalid_user")
-    assert "Error: 404 - Not Found" in result  # Now expecting the full error message
+if __name__ == "__main__":
+    unittest.main()
