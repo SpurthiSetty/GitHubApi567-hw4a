@@ -1,16 +1,23 @@
 # GitHub API Assignment
 
-HW Assignment for SSW 567
+HW Assignment for SSW 567  
 This project retrieves a GitHub user's public repositories and counts the number of commits in each.  
-It uses GitHub's REST API and is designed with **unit testing in mind**.
+It uses GitHub's REST API and is designed with **unit testing and mocking in mind**.
 
-## 🔗 GitHub Repository
+## GitHub Repository (HW04a_Mocking Branch)
 
-[GitHub Repository Link](https://github.com/SpurthiSetty/GitHubApi567-hw4a)
+[GitHub Repository (HW04a_Mocking)](https://github.com/SpurthiSetty/GitHubApi567-hw4a/tree/HW04a_Mocking)
 
 ## ✅ Build Status (Travis CI)
 
-[![Build Status](https://app.travis-ci.com/SpurthiSetty/GitHubApi567-hw4a.svg?token=uUkA27xxGEnZmDyetwdU&branch=main)](https://app.travis-ci.com/SpurthiSetty/GitHubApi567-hw4a)
+[![Build Status](https://app.travis-ci.com/SpurthiSetty/GitHubApi567-hw4a.svg?token=uUkA27xxGEnZmDyetwdU&branch=HW04a_Mocking)](https://app.travis-ci.com/SpurthiSetty/GitHubApi567-hw4a)
+
+## 🛠 HW04a_Mocking Branch
+
+This branch contains modifications to mock all GitHub API calls in unit tests.  
+By using the `unittest.mock` module, the tests run **consistently** without making real API requests.
+
+## How to Run the Program
 
 ## How to Run the Program
 
@@ -44,5 +51,5 @@ It uses GitHub's REST API and is designed with **unit testing in mind**.
 
 6. Run unit tests
    ```
-   pytest
+   python -m unittest discover
    ```
